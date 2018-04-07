@@ -1,5 +1,5 @@
 {
-  "name": "js-tree-walker",
+  "name": "tree-walker",
   "description": "Wireframe based on ES6 Proxies for making tree traversing APIs.",
   "version": "0.0.1",
   "main": "dist/tree-walker.js",
