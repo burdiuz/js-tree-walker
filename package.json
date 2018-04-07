@@ -1,7 +1,7 @@
 {
   "name": "js-tree-walker",
   "description": "Wireframe based on ES6 Proxies for making tree traversing APIs.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "dist/tree-walker.js",
   "keywords": [
     "js",
