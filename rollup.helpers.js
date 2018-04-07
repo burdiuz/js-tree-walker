@@ -35,7 +35,7 @@ export const baseConfig = {
       sourcemap: true,
       exports: 'named',
       name: LIBRARY_VAR_NAME,
-      format: 'umd',
+      format: 'cjs',
     },
   ],
   plugins,

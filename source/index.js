@@ -3,6 +3,8 @@ import { setNamePrefix, isValidPrefix } from './prefixes';
 import wrapWithProxy from './wrapper';
 import { addAugmentations, resetAugmentations, hasAugmentation } from './augmentations';
 import coreAugmentations from './augmentations/core';
+import nodeAugmentations from './augmentations/node';
+import listAugmentations from './augmentations/list';
 
 addAugmentations(coreAugmentations);
 
@@ -17,6 +19,8 @@ export {
   hasAugmentation,
   resetAugmentations,
   coreAugmentations,
+  nodeAugmentations,
+  listAugmentations,
 
   setNamePrefix,
   isValidPrefix,
