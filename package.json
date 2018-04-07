@@ -1,22 +1,25 @@
 {
-  "name": "js-lib-environment",
-  "description": "",
+  "name": "js-tree-walker",
+  "description": "Wireframe based on ES6 Proxies for making tree traversing APIs.",
   "version": "0.0.0",
-  "main": "dist/lib.js",
+  "main": "dist/tree-walker.js",
   "keywords": [
     "js",
-    "javascript"
+    "javascript",
+    "proxy",
+    "tree",
+    "E4X"
   ],
-  "homepage": "https://github.com/burdiuz/js-lib-environment",
+  "homepage": "https://github.com/burdiuz/js-tree-walker",
   "bugs": {
-    "url": "https://github.com/burdiuz/js-lib-environment/issues",
+    "url": "https://github.com/burdiuz/js-tree-walker/issues",
     "email": "burdiuz@gmail.com"
   },
   "license": "MIT",
   "author": "Oleg Galaburda <burdiuz@gmail.com> (http://actualwave.com/)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/burdiuz/js-lib-environment.git"
+    "url": "https://github.com/burdiuz/js-tree-walker.git"
   },
   "dependencies": {},
   "devDependencies": {
