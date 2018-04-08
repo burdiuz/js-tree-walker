@@ -7,17 +7,17 @@ const children = (node, adapter, [childName], utils) => {
     list = adapter.getChildren(node);
   }
 
-  return utils.wrapWithProxy(list, adapter);
+  return utils.wrap(list, adapter);
 };
 
 const childAt = (node, adapter, [index = 0], utils) =>
-  utils.wrapWithProxy(adapter.getChildAt(node, index), adapter);
+  utils.wrap(adapter.getChildAt(node, index), adapter);
 
 const root = (node, adapter, args, utils) =>
-  utils.wrapWithProxy(adapter.getNodeRoot(node), adapter);
+  utils.wrap(adapter.getNodeRoot(node), adapter);
 
 const parent = (node, adapter, args, utils) =>
-  utils.wrapWithProxy(adapter.getNodeParent(node), adapter);
+  utils.wrap(adapter.getNodeParent(node), adapter);
 
 
 export default {

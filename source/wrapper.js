@@ -21,7 +21,7 @@ let utils;
 
 const createWalkerNode = (node, adapter, childName = undefined) => {
   function TreeWalker() {
-    throw new Error('should have been never called');
+    throw new Error('Should have been never called');
   }
 
   // can be single Node and NodeList with length >= 0
@@ -34,7 +34,7 @@ const createWalkerNode = (node, adapter, childName = undefined) => {
   return TreeWalker;
 };
 
-const wrapWithProxy = (node, adapter, childName = undefined) => {
+const wrap = (node, adapter, childName = undefined) => {
   if (!adapter.isNode(node) && !adapter.isList(node)) {
     return node;
   }
@@ -48,7 +48,7 @@ utils = {
   getValue,
   getSingleNode,
   getNodeList,
-  wrapWithProxy,
+  wrap,
 };
 
 const get = ({ node, adapter, childName }, key) => {
@@ -59,7 +59,7 @@ const get = ({ node, adapter, childName }, key) => {
    if numeric index used, use node as parent and childName is undefined
    */
   if (isIntKey(key)) {
-    return wrapWithProxy(adapter.getNodeAt(getNodeList(node, adapter, childName), key), adapter);
+    return wrap(adapter.getNodeAt(getNodeList(node, adapter, childName), key), adapter);
   }
 
   if (isPrefixedKey(key)) {
@@ -68,7 +68,7 @@ const get = ({ node, adapter, childName }, key) => {
   }
 
   // return wrap with node and childName
-  return wrapWithProxy(getValue(node, adapter, childName), adapter, key);
+  return wrap(getValue(node, adapter, childName), adapter, key);
 };
 
 const has = ({ node, adapter, childName }, key) => {
@@ -103,7 +103,7 @@ const apply = ({ node, adapter, childName }, thisArg, argumentsList) => {
     return applyAugmentation(childName, node, adapter, argumentsList, utils);
   }
 
-  // FIXME might throw only in dev mode(needs implmentation)
+  // FIXME might throw only in dev mode(needs implementation)
   throw new Error(`"${childName}" is not a callable object.`);
 };
 
@@ -113,5 +113,5 @@ handlers = {
   apply,
 };
 
-export default wrapWithProxy;
+export default wrap;
 

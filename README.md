@@ -11,6 +11,12 @@ Augmentations and prefixes should interact with data structure only by using ada
 methods, this way they will be kept agnostic to data structures and can be used with
 any adapter i.e. data structure.
 
-### TODO add API docs
+### TODO add docs
 
+## Installation
 
+## API
+### Core
+### Adapters
+### Prefixes
+### Augmentations

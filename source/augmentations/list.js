@@ -18,24 +18,24 @@ const first = (node, adapter, args, utils) => {
     }
   }
 
-  return utils.wrapWithProxy(result, adapter);
+  return utils.wrap(result, adapter);
 };
 
 const filter = (node, adapter, [callback], utils) => {
   // apply filter on element collection
-  // allways return wrapped list
+  // always return wrapped list
   node = adapter.toList(node);
   const list = [];
 
-  const wrappedNode = utils.wrapWithProxy(node, adapter);
+  const wrappedNode = utils.wrap(node, adapter);
   for (let index = 0; index < node.length; index += 1) {
     const child = node[index];
-    if (callback(utils.wrapWithProxy(child, adapter), index, wrappedNode)) {
+    if (callback(utils.wrap(child, adapter), index, wrappedNode)) {
       list.push(child);
     }
   }
 
-  return utils.wrapWithProxy(list, adapter);
+  return utils.wrap(list, adapter);
 };
 
 const map = (node, adapter, [callback, wrapNodes = true], utils) => {
@@ -47,25 +47,25 @@ const map = (node, adapter, [callback, wrapNodes = true], utils) => {
   const list = [];
 
   let areNodes = true;
-  const wrappedNode = utils.wrapWithProxy(node, adapter);
+  const wrappedNode = utils.wrap(node, adapter);
   for (let index = 0; index < node.length; index += 1) {
     const child = node[index];
-    const result = callback(utils.wrapWithProxy(child, adapter), index, wrappedNode);
+    const result = callback(utils.wrap(child, adapter), index, wrappedNode);
     areNodes = areNodes && adapter.isNode(result);
     list.push(result);
   }
 
-  return wrapNodes && areNodes ? utils.wrapWithProxy(list, adapter) : list;
+  return wrapNodes && areNodes ? utils.wrap(list, adapter) : list;
 };
 
 const reduce = (node, adapter, [callback, result], utils) => {
   // apply reduce on element collection
   node = adapter.toList(node);
 
-  const wrappedNode = utils.wrapWithProxy(node, adapter);
+  const wrappedNode = utils.wrap(node, adapter);
   for (let index = 0; index < node.length; index += 1) {
     const child = node[index];
-    result = callback(result, utils.wrapWithProxy(child, adapter), index, wrappedNode);
+    result = callback(result, utils.wrap(child, adapter), index, wrappedNode);
   }
 
   return result;
