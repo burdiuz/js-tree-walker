@@ -169,6 +169,7 @@ var coreAugmentations = {
   [Symbol.toPrimitive]: node => node
 };
 
+/* eslint-disable prefer-spread */
 const children = (node, adapter, [childName], utils) => {
   let list;
 
@@ -181,6 +182,53 @@ const children = (node, adapter, [childName], utils) => {
   return utils.wrap(list, adapter);
 };
 
+/**
+ * @internal
+ */
+const descendantsAll = (node, adapter, args, utils) => {
+  const result = [];
+  const list = adapter.getChildren(node);
+  const length = adapter.getLength(list, adapter);
+
+  for (let index = 0; index < length; index += 1) {
+    const child = list[index];
+    result.push(child);
+    result.push.apply(result, descendantsAll(child, adapter, args, utils));
+  }
+
+  return result;
+};
+
+/**
+ * @internal
+ */
+const descendantsByName = (node, adapter, args, utils) => {
+  const [childName] = args;
+  const result = [];
+  const list = adapter.getChildren(node);
+  const length = adapter.getLength(list, adapter);
+
+  for (let index = 0; index < length; index += 1) {
+    const child = list[index];
+    if (adapter.getName(child) === childName) {
+      result.push(child);
+    }
+    result.push.apply(result, descendantsByName(child, adapter, args, utils));
+  }
+
+  return result;
+};
+
+const descendants = (node, adapter, args, utils) => {
+  const [childName] = args;
+
+  if (childName) {
+    return utils.wrap(descendantsByName(node, adapter, args, utils), adapter);
+  }
+
+  return utils.wrap(descendantsAll(node, adapter, args, utils), adapter);
+};
+
 const childAt = (node, adapter, [index = 0], utils) => utils.wrap(adapter.getChildAt(node, index), adapter);
 
 const root = (node, adapter, args, utils) => utils.wrap(adapter.getNodeRoot(node), adapter);
@@ -189,6 +237,7 @@ const parent = (node, adapter, args, utils) => utils.wrap(adapter.getNodeParent(
 
 var node = {
   children,
+  descendants,
   childAt,
   root,
   parent
@@ -200,38 +249,45 @@ const length = (node, adapter) => {
   } else if (adapter.isNode(node)) {
     return 1;
   }
+
   return 0;
 };
 
-const first = (node, adapter, args, utils) => {
-  let result = node;
+const at = (node, adapter, args, utils) => {
+  const [index] = args;
+  // return empty array, which will create empty wrapper for chained calls,
+  // this will make next calls errorless.
+  let result = [];
 
   if (adapter.isList(node)) {
-    if (node.length) {
-      [result] = node;
-    } else {
-      result = [];
+    const child = adapter.getNodeAt(node, index);
+
+    if (child) {
+      result = child;
     }
   }
 
   return utils.wrap(result, adapter);
 };
 
+const first = (node, adapter, args, utils) => at(node, adapter, [0], utils);
+
 const filter = (node, adapter, [callback], utils) => {
   // apply filter on element collection
   // always return wrapped list
-  node = adapter.toList(node);
-  const list = [];
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(node);
+  const result = [];
 
-  const wrappedNode = utils.wrap(node, adapter);
-  for (let index = 0; index < node.length; index += 1) {
-    const child = node[index];
+  const wrappedNode = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
     if (callback(utils.wrap(child, adapter), index, wrappedNode)) {
-      list.push(child);
+      result.push(child);
     }
   }
 
-  return utils.wrap(list, adapter);
+  return utils.wrap(result, adapter);
 };
 
 const map = (node, adapter, [callback, wrapNodes = true], utils) => {
@@ -239,36 +295,40 @@ const map = (node, adapter, [callback, wrapNodes = true], utils) => {
   // if wrapNodes in FALSE, will generate normal Array with RAW results in it
   // if wrapNodes in TRUE and all elements of resulting list are nodes, will
   //   generate wrapped list and put all result into it
-  node = adapter.toList(node);
-  const list = [];
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(list);
+  const result = [];
 
   let areNodes = true;
-  const wrappedNode = utils.wrap(node, adapter);
-  for (let index = 0; index < node.length; index += 1) {
-    const child = node[index];
-    const result = callback(utils.wrap(child, adapter), index, wrappedNode);
-    areNodes = areNodes && adapter.isNode(result);
-    list.push(result);
+  const wrappedNode = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    const childResult = callback(utils.wrap(child, adapter), index, wrappedNode);
+    areNodes = areNodes && adapter.isNode(childResult);
+    result.push(childResult);
   }
 
-  return wrapNodes && areNodes ? utils.wrap(list, adapter) : list;
+  return wrapNodes && areNodes ? utils.wrap(result, adapter) : result;
 };
 
 const reduce = (node, adapter, [callback, result], utils) => {
   // apply reduce on element collection
-  node = adapter.toList(node);
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(node);
+  let lastResult = result;
 
-  const wrappedNode = utils.wrap(node, adapter);
-  for (let index = 0; index < node.length; index += 1) {
-    const child = node[index];
-    result = callback(result, utils.wrap(child, adapter), index, wrappedNode);
+  const wrappedNode = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    lastResult = callback(result, utils.wrap(child, adapter), index, wrappedNode);
   }
 
-  return result;
+  return lastResult;
 };
 
 var list = {
   length,
+  at,
   first,
   filter,
   map,

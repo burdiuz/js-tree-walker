@@ -62,7 +62,7 @@
   },
   "prettier": {
     "singleQuote": true,
-    "trailing-comma": "es5",
+    "trailing-comma": "all",
     "arrowParens": "always",
     "parser": "flow"
   },

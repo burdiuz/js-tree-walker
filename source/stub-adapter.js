@@ -14,12 +14,13 @@ const adapter = {
   // node methods
   isNode: fn,
   toNode: fn,
+  getName: fn,
   hasChild: fn,
   getChildren: fn,
   getChildrenByName: fn,
   getChildAt: fn,
   getNodeParent: fn,
-  getNodeRoot: fn,
+  getNodeRoot: fn
 };
 
 export default adapter;
