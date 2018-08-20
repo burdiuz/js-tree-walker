@@ -1,5 +1,6 @@
 # TreeWalker
-[![Build Status](https://travis-ci.org/burdiuz/js-tree-walker.svg?branch=master)](https://travis-ci.org/burdiuz/js-tree-walker) [![Coverage Status](https://coveralls.io/repos/github/burdiuz/js-tree-walker/badge.svg?branch=master)](https://coveralls.io/github/burdiuz/js-tree-walker?branch=master)
+[![Build Status](https://travis-ci.org/burdiuz/js-tree-walker.svg?branch=master)](https://travis-ci.org/burdiuz/js-tree-walker) [![Coverage Status](https://coveralls.io/repos/github/burdiuz/js-tree-walker/badge.svg?branch=master)](https://coveralls.io/github/burdiuz/js-tree-walker?branch=master)  
+
 This is wireframe based on ES6 Proxies for making tree traversing APIs.  
 You may check ready to use implementation DOMWalker for better understanding.  
 Inspired by [E4X(ECMAScript for XML)](https://en.wikipedia.org/wiki/ECMAScript_for_XML) and its ActionScript 3 implementation. RIP.
