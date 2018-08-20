@@ -1,7 +1,7 @@
 # TreeWalker
-
-This is wireframe based on ES6 Proxies for making tree traversing APIs.
-You may check ready to use implementation DOMWalker for better understanding.
+[![Build Status](https://travis-ci.org/burdiuz/js-tree-walker.svg?branch=master)](https://travis-ci.org/burdiuz/js-tree-walker) [![Coverage Status](https://coveralls.io/repos/github/burdiuz/js-tree-walker/badge.svg?branch=master)](https://coveralls.io/github/burdiuz/js-tree-walker?branch=master)
+This is wireframe based on ES6 Proxies for making tree traversing APIs.  
+You may check ready to use implementation DOMWalker for better understanding.  
 Inspired by [E4X(ECMAScript for XML)](https://en.wikipedia.org/wiki/ECMAScript_for_XML) and its ActionScript 3 implementation. RIP.
 
 ## Installation
@@ -25,22 +25,26 @@ but no methods can be called on them except
  * toString() -- to call `toString()` method on source node
 
 ## How it works
-When you call `create()` function, you pass source data and adapter object. These two will be packed into [wrapper Proxy object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) which will be returned.
-Proxy object will work with adapter(with its `getChildren()`, `getChildrenByName()` and other methods) to retrieve a list of child nodes with requested name.
+When you call `create()` function, you pass source data and adapter object. These two will be packed into [wrapper Proxy object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy). Proxy object works with adapter(with its `getChildren()`, `getChildrenByName()` and other methods) to retrieve a list of child nodes when requested  by name or index.
 ```
 const root = create(mySourceTreeData);
 const myDescendants = root.child.otherChild.descendant;
+const myThirdChild = root.child[2];
+const jerries = myDescendants.jerry;
 ```
-With this code, on line 1, Proxy object for root node of the source tree is created. On line 2 three additional Proxies are created for `child`, `otherChild` and `descendant` node requests. When requesting a child node by name, it returns not one node but a list of all child nodes with same name, but when children requested off the list, Proxy will take first node from this list and return its children. So, if you have a list of 2 nodes where first does not have children and second has children
+With this code, on line 1, Proxy object for root node of the source tree is created. On line 2 additional Proxies are created for `child`, `otherChild` and proxy for `descendant` nodes is stored in `myDescendants`.   
+
+When requesting a child node by name, it returns not one node but a list of all child nodes with same name, but when children requested from the list(like `myDescendants.jerry`), Proxy will take first node from this list and return its children.   
+So, if you have a list of 2 nodes where first does not have children
 ```
 const root = <source data>;
 /**
 node structure
-   root
-   /   \
- one   one
-       / \
-     two  two
+    root
+    /   \
+one[0] one[1]
+        / \
+   two[0] two[1]
 */
 
 const rootProxy = create(root, myAdapter);
@@ -67,7 +71,7 @@ in this way you can request any descendants from any depth without worrying abou
 
 
 ## Usage
-
+  
 To use TreeWalker, it should be supplied with two required components:
 1. Source data - Tree data structure, that you want to work with
 2. Adapter - Provides standardized API to work with source data
@@ -80,9 +84,9 @@ import { create } from '@actualwave/tree-walker';
 // root is a wrapped "source" node
 const root  =  create(source, myAdapter);
 ```
-After instantiating, you can access child nodes as properties and augmentations as methods. Its possible to have methods and nodes of same name, its because, when wrapper is created for child object, it stores parent node and name of child node.
+After instantiating, you can access child nodes as properties and augmentations as methods. Its possible to have methods and nodes of same name, because, when wrapper is created for child object, it stores parent node and name of child node.   
 
- If request a property from wrapper, it will look for a node to return new wrapper with that node and name of the property:
+ If property is requested from wrapper, it will return new wrapper with that node and name of the property:
 ```
 // stores { target: node, name: "parent" }
 const parent = node.parent;
@@ -103,7 +107,7 @@ When requesting a child, wrapper uses `getChildren()` and `getChildrenByName()` 
 const firstSibbling = sibblings[0];
 ```
 When requesting a child from wrapped list of nodes, wrapper will request children of first node from the list.
-
+ 
 > Adapter methods `toList()`, `getChildren()` and `getChildrenByName()` must always return list of nodes. In case of 0 nodes it should be empty list. Single node must have length 1 and, if requested, index 0 must return same node.
 
 If you wish to have specific node in a wrapper, you can request it by specifying index:
@@ -177,13 +181,13 @@ Augmentations are simple functions which receive set of arguments and result wit
 addAugmentations({
 	 children: (node, adapter, [childName], utils) => {
 		let  list;
-
+	
 		if (childName) {
 			list  =  adapter.getChildrenByName(node, childName);
 		} else {
 			list  =  adapter.getChildren(node);
 		}
-
+	
 		return  utils.wrap(list, adapter);
 	},
 }};
