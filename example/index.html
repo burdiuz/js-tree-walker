@@ -69,10 +69,13 @@
 
     const root = create(tree);
 
-    const first1 = root.children('first').children('first').first();
+    const first1 = root.first.first.first();
+    /* equivalent using augmentations:
+        const first1 = root.children('first').children('first').first();
+    */
     console.log('Get child "first"(level 1) of child "first"(level 0):', first1.valueOf());
     console.log('Get its children: ', first1.children().valueOf());
-    console.log('Get its children with name "third"(level 2): ', first1.children('third').valueOf());
+    console.log('Get its children with name "third"(level 2): ', first1.third.valueOf());
 
     console.log(`Root has ${root.descendants().length()} descendants`);
     console.log('Get list of descendants from root node:');
@@ -82,7 +85,7 @@
     console.log(root.descendants('first').valueOf());
 
     console.log('Find "uniqueName" descendant and get its "uniqueParam" value:',
-      root.descendants('uniqueName').first().valueOf().uniqueParam);
+      root.descendants('uniqueName').first().valueOf().data.uniqueParam);
   </script>
 </head>
 

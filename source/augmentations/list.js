@@ -9,10 +9,8 @@ const length = (node, adapter) => {
 };
 
 const at = (node, adapter, args, utils) => {
-  const [index] = args;
-  // return empty array, which will create empty wrapper for chained calls,
-  // this will make next calls errorless.
-  let result = [];
+  const [index = 0] = args;
+  let result;
 
   if (adapter.isList(node)) {
     const child = adapter.getNodeAt(node, index);
@@ -20,9 +18,13 @@ const at = (node, adapter, args, utils) => {
     if (child) {
       result = child;
     }
+  } else if (!index) {
+    result = node;
   }
 
-  return utils.wrap(result, adapter);
+  // if nothing found return empty array, which will create empty wrapper for
+  // chained calls, this will make next calls errorless.
+  return utils.wrap(result || [], adapter);
 };
 
 const first = (node, adapter, args, utils) => at(node, adapter, [0], utils);
@@ -45,29 +47,26 @@ const filter = (node, adapter, [callback], utils) => {
   return utils.wrap(result, adapter);
 };
 
-const map = (node, adapter, [callback, wrapNodes = true], utils) => {
+const map = (node, adapter, [callback], utils) => {
   // apply map on element collection
-  // if wrapNodes in FALSE, will generate normal Array with RAW results in it
-  // if wrapNodes in TRUE and all elements of resulting list are nodes, will
-  //   generate wrapped list and put all result into it
   const list = adapter.toList(node);
   const listLength = adapter.getLength(list);
   const result = [];
 
-  let areNodes = true;
-  const wrappedNode = utils.wrap(list, adapter);
+  const wrappedList = utils.wrap(list, adapter);
   for (let index = 0; index < listLength; index += 1) {
     const child = adapter.getNodeAt(list, index);
     const childResult = callback(
       utils.wrap(child, adapter),
       index,
-      wrappedNode
+      wrappedList,
     );
-    areNodes = areNodes && adapter.isNode(childResult);
     result.push(childResult);
   }
 
-  return wrapNodes && areNodes ? utils.wrap(result, adapter) : result;
+  // returns normal array because we don't know if all items in result are nodes
+  // and if they are, they will be likely already wrapped
+  return result;
 };
 
 const reduce = (node, adapter, [callback, result], utils) => {
@@ -80,10 +79,10 @@ const reduce = (node, adapter, [callback, result], utils) => {
   for (let index = 0; index < listLength; index += 1) {
     const child = adapter.getNodeAt(list, index);
     lastResult = callback(
-      result,
+      lastResult,
       utils.wrap(child, adapter),
       index,
-      wrappedNode
+      wrappedNode,
     );
   }
 
@@ -96,5 +95,5 @@ export default {
   first,
   filter,
   map,
-  reduce
+  reduce,
 };

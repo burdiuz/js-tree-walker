@@ -15,17 +15,22 @@ const children = (node, adapter, [childName], utils) => {
  * @internal
  */
 const descendantsAll = (node, adapter, args, utils) => {
-  const result = [];
+  const children = []; // eslint-disable-line no-shadow
+  const descendants = [];
   const list = adapter.getChildren(node);
   const length = adapter.getLength(list, adapter);
 
   for (let index = 0; index < length; index += 1) {
     const child = list[index];
-    result.push(child);
-    result.push.apply(result, descendantsAll(child, adapter, args, utils));
+    children.push(child);
+    descendants.push.apply(
+      descendants,
+      descendantsAll(child, adapter, args, utils),
+    );
   }
 
-  return result;
+  /* children go first, then other descendants */
+  return [...children, ...descendants];
 };
 
 /**
@@ -33,19 +38,25 @@ const descendantsAll = (node, adapter, args, utils) => {
  */
 const descendantsByName = (node, adapter, args, utils) => {
   const [childName] = args;
-  const result = [];
+  const children = []; // eslint-disable-line no-shadow
+  const descendants = [];
   const list = adapter.getChildren(node);
   const length = adapter.getLength(list, adapter);
 
   for (let index = 0; index < length; index += 1) {
     const child = list[index];
     if (adapter.getName(child) === childName) {
-      result.push(child);
+      children.push(child);
     }
-    result.push.apply(result, descendantsByName(child, adapter, args, utils));
+
+    descendants.push.apply(
+      descendants,
+      descendantsByName(child, adapter, args, utils),
+    );
   }
 
-  return result;
+  /* children go first, then other descendants */
+  return [...children, ...descendants];
 };
 
 const descendants = (node, adapter, args, utils) => {
@@ -72,5 +83,5 @@ export default {
   descendants,
   childAt,
   root,
-  parent
+  parent,
 };

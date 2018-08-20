@@ -4,26 +4,41 @@
       this.name = name;
       this.children = [];
       this.parent = parent;
-      this.root = root;
+      this.root = root || this;
     }
 
-    toString() {
-      return `[ONode name="${this.name}" level="${this.level}"]`;
+    toString = () => `[ONode name="${this.name}" ${JSON.stringify(this.data)}]`;
+    valueOf = () => ({ name: this.name, data: this.data });
+    normalMethod() {
+      return this.data;
     }
-  };
+  }
 
-  const parseONodes = (obj, name = '#root', parent = undefined, root = undefined) => {
+  const parseONodes = (
+    obj,
+    name = '#root',
+    parent = undefined,
+    root = undefined,
+  ) => {
     const node = new ONode(name, parent, root);
-    Object.assign(node, obj.data);
     const children = [];
 
     Object.keys(obj).forEach((key) => {
+      const source = obj[key];
       if (key !== 'data') {
-        children.push(parseONodes(obj[key], key, node, root || node));
+        if (source instanceof Array) {
+          children.push.apply(
+            children,
+            source.map((item) => parseONodes(item, key, node, root || node)),
+          );
+        } else {
+          children.push(parseONodes(source, key, node, root || node));
+        }
       }
     });
 
     node.children = children;
+    node.data = obj.data;
 
     return node;
   };

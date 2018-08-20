@@ -2,18 +2,43 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-let defaultAdapter = null;
+let defaultAdapter;
 
 const setDefaultAdapter = adapter => {
   defaultAdapter = adapter;
 };
 const getDefaultAdapter = () => defaultAdapter;
 
+function unwrapExports (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var hasOwn_1 = createCommonjsModule(function (module, exports) {
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const hasOwn = (
+  (has) =>
+  (target, property) =>
+  Boolean(target && has.call(target, property))
+)(Object.prototype.hasOwnProperty);
+
+exports.hasOwn = hasOwn;
+exports.default = hasOwn;
+});
+
+var hasOwn = unwrapExports(hasOwn_1);
+var hasOwn_2 = hasOwn_1.hasOwn;
+
 const namePrefixes = {};
 
-const isValidPrefix = prefix => typeof prefix === 'string' && prefix.length === 1 && namePrefixes.hasOwnProperty(prefix);
+const isValidPrefix = prefix => typeof prefix === 'string' && hasOwn(namePrefixes, prefix);
 
-const isPrefixedKey = key => key && typeof key === 'string' && key.length > 1 && namePrefixes.hasOwnProperty(key.charAt());
+const isPrefixedKey = key => key && typeof key === 'string' && key.length > 1 && hasOwn(namePrefixes, key.charAt());
 
 const getPrefixHandler = key => namePrefixes[key.charAt()];
 
@@ -25,7 +50,11 @@ const setNamePrefix = (prefix, handler) => {
   namePrefixes[prefix] = handler;
 };
 
-const isIntKey = key => `${parseInt(key, 10)}` === key;
+const isIntKey = key =>
+// it is unsigned int
+typeof key === 'number' && key >>> 0 === key ||
+// it is integer number string
+`${parseInt(String(key), 10)}` === key;
 
 const getValue = (node, adapter, childName = undefined) => {
   if (childName !== undefined) {
@@ -35,19 +64,9 @@ const getValue = (node, adapter, childName = undefined) => {
   return node;
 };
 
-const getSingleNode = (node, adapter, childName = undefined) => {
-  const value = getValue(node, adapter, childName);
+const getSingleNode = (node, adapter, childName = undefined) => adapter.toNode(getValue(node, adapter, childName));
 
-  if (adapter.isList(value)) {
-    return adapter.getNodeAt(node);
-  }
-
-  return value;
-};
-
-const getNodeList = (node, adapter, childName = undefined) => {
-  return adapter.toList(getValue(node, adapter, childName));
-};
+const getNodeList = (node, adapter, childName = undefined) => adapter.toList(getValue(node, adapter, childName));
 
 let augmentations = {};
 
@@ -55,16 +74,25 @@ const resetAugmentations = (augs = {}) => {
   augmentations = augs;
 };
 
-const addAugmentations = (augs = {}) => {
+const addAugmentations = augs => {
   augmentations = Object.assign({}, augmentations, augs);
 };
 
-const hasAugmentation = key => key && typeof key === 'string' && augmentations.hasOwnProperty(key);
+const hasAugmentation = key => key && typeof key === 'string' && hasOwn(augmentations, key);
 
 const applyAugmentation = (key, ...args) => augmentations[key](...args);
 
 let handlers;
 let utils;
+
+const GET_RESTRICTED_NAMES = {
+  constructor: true,
+  prototype: true
+  /*
+  call: true,
+  apply: true,
+  */
+};
 
 const createWalkerNode = (node, adapter, childName = undefined) => {
   function TreeWalker() {
@@ -100,11 +128,16 @@ utils = {
 
 const get = ({ node, adapter, childName }, key) => {
   /*
+   if symbol, return node property
    if string childName used
    if starts with $, return attribute value
    else return wrapper with current single node and property childName
    if numeric index used, use node as parent and childName is undefined
    */
+  if (typeof key === 'symbol' || GET_RESTRICTED_NAMES[key] === true) {
+    return node[key];
+  }
+
   if (isIntKey(key)) {
     return wrap(adapter.getNodeAt(getNodeList(node, adapter, childName), key), adapter);
   }
@@ -114,8 +147,10 @@ const get = ({ node, adapter, childName }, key) => {
     return handler(getValue(node, adapter, childName), adapter, [key.substr(1)], utils);
   }
 
+  const result = getValue(node, adapter, childName);
+
   // return wrap with node and childName
-  return wrap(getValue(node, adapter, childName), adapter, key);
+  return wrap(result, adapter, key);
 };
 
 const has = ({ node, adapter, childName }, key) => {
@@ -126,10 +161,11 @@ const has = ({ node, adapter, childName }, key) => {
   if (isPrefixedKey(key)) {
     // return adapter.hasAttribute(getSingleNode(node, adapter, childName), key.substr(1));
     // don't know how to implement this, calling same handler as in GET seems overkill
+    // FIXME let user to register GET and optional SET/HAS handlers
     return true;
   }
 
-  return adapter.hasChild(getSingleNode(), key);
+  return adapter.hasChild(getSingleNode(node, adapter, childName), key);
 };
 
 const apply = ({ node, adapter, childName }, thisArg, argumentsList) => {
@@ -139,15 +175,24 @@ const apply = ({ node, adapter, childName }, thisArg, argumentsList) => {
 
   // this works only of childName === prefix, one char string
   // otherwise it should be passed into arguments
+
+  // FIXME if GET always return result of prefixed property, means there are
+  // no cases when we get a wrapped node to APPLY trap with prefixed name.
   if (isValidPrefix(childName)) {
     const handler = getPrefixHandler(childName);
-    return handler(node, adapter, argumentsList, utils);
+    return handler(node, adapter, [childName.substr(1), ...argumentsList], utils);
   }
 
   if (hasAugmentation(childName)) {
     // INFO cannot use target because it contains method's childName, not Node childName
     // call the function with saving context, so other augmentations are accessible via "this"
     return applyAugmentation(childName, node, adapter, argumentsList, utils);
+  }
+
+  // in case of normal function being called out of the tree node
+  const targetNode = adapter.toNode(node);
+  if (typeof targetNode[childName] === 'function') {
+    return targetNode[childName](...argumentsList);
   }
 
   // FIXME might throw only in dev mode(needs implementation)
@@ -165,8 +210,7 @@ const valueOf = node => node;
 
 var coreAugmentations = {
   toString,
-  valueOf,
-  [Symbol.toPrimitive]: node => node
+  valueOf
 };
 
 /* eslint-disable prefer-spread */
@@ -186,17 +230,19 @@ const children = (node, adapter, [childName], utils) => {
  * @internal
  */
 const descendantsAll = (node, adapter, args, utils) => {
-  const result = [];
+  const children = []; // eslint-disable-line no-shadow
+  const descendants = [];
   const list = adapter.getChildren(node);
   const length = adapter.getLength(list, adapter);
 
   for (let index = 0; index < length; index += 1) {
     const child = list[index];
-    result.push(child);
-    result.push.apply(result, descendantsAll(child, adapter, args, utils));
+    children.push(child);
+    descendants.push.apply(descendants, descendantsAll(child, adapter, args, utils));
   }
 
-  return result;
+  /* children go first, then other descendants */
+  return [...children, ...descendants];
 };
 
 /**
@@ -204,19 +250,22 @@ const descendantsAll = (node, adapter, args, utils) => {
  */
 const descendantsByName = (node, adapter, args, utils) => {
   const [childName] = args;
-  const result = [];
+  const children = []; // eslint-disable-line no-shadow
+  const descendants = [];
   const list = adapter.getChildren(node);
   const length = adapter.getLength(list, adapter);
 
   for (let index = 0; index < length; index += 1) {
     const child = list[index];
     if (adapter.getName(child) === childName) {
-      result.push(child);
+      children.push(child);
     }
-    result.push.apply(result, descendantsByName(child, adapter, args, utils));
+
+    descendants.push.apply(descendants, descendantsByName(child, adapter, args, utils));
   }
 
-  return result;
+  /* children go first, then other descendants */
+  return [...children, ...descendants];
 };
 
 const descendants = (node, adapter, args, utils) => {
@@ -254,10 +303,8 @@ const length = (node, adapter) => {
 };
 
 const at = (node, adapter, args, utils) => {
-  const [index] = args;
-  // return empty array, which will create empty wrapper for chained calls,
-  // this will make next calls errorless.
-  let result = [];
+  const [index = 0] = args;
+  let result;
 
   if (adapter.isList(node)) {
     const child = adapter.getNodeAt(node, index);
@@ -265,9 +312,13 @@ const at = (node, adapter, args, utils) => {
     if (child) {
       result = child;
     }
+  } else if (!index) {
+    result = node;
   }
 
-  return utils.wrap(result, adapter);
+  // if nothing found return empty array, which will create empty wrapper for
+  // chained calls, this will make next calls errorless.
+  return utils.wrap(result || [], adapter);
 };
 
 const first = (node, adapter, args, utils) => at(node, adapter, [0], utils);
@@ -290,25 +341,22 @@ const filter = (node, adapter, [callback], utils) => {
   return utils.wrap(result, adapter);
 };
 
-const map = (node, adapter, [callback, wrapNodes = true], utils) => {
+const map = (node, adapter, [callback], utils) => {
   // apply map on element collection
-  // if wrapNodes in FALSE, will generate normal Array with RAW results in it
-  // if wrapNodes in TRUE and all elements of resulting list are nodes, will
-  //   generate wrapped list and put all result into it
   const list = adapter.toList(node);
   const listLength = adapter.getLength(list);
   const result = [];
 
-  let areNodes = true;
-  const wrappedNode = utils.wrap(list, adapter);
+  const wrappedList = utils.wrap(list, adapter);
   for (let index = 0; index < listLength; index += 1) {
     const child = adapter.getNodeAt(list, index);
-    const childResult = callback(utils.wrap(child, adapter), index, wrappedNode);
-    areNodes = areNodes && adapter.isNode(childResult);
+    const childResult = callback(utils.wrap(child, adapter), index, wrappedList);
     result.push(childResult);
   }
 
-  return wrapNodes && areNodes ? utils.wrap(result, adapter) : result;
+  // returns normal array because we don't know if all items in result are nodes
+  // and if they are, they will be likely already wrapped
+  return result;
 };
 
 const reduce = (node, adapter, [callback, result], utils) => {
@@ -320,7 +368,7 @@ const reduce = (node, adapter, [callback, result], utils) => {
   const wrappedNode = utils.wrap(list, adapter);
   for (let index = 0; index < listLength; index += 1) {
     const child = adapter.getNodeAt(list, index);
-    lastResult = callback(result, utils.wrap(child, adapter), index, wrappedNode);
+    lastResult = callback(lastResult, utils.wrap(child, adapter), index, wrappedNode);
   }
 
   return lastResult;
