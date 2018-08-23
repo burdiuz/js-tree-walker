@@ -114,6 +114,18 @@ const adapter = {
    * @return {Node}
    */
   getNodeRoot: fn,
+  /**
+   * Get root node.
+   * @param {Node|Node[]} node
+   * @return {Object}
+   */
+  value: (item) => item,
+  /**
+   * Get root node.
+   * @param {Node|Node[]} node
+   * @return {String}
+   */
+  string: (item) => item.toString(),
 };
 
 export default adapter;

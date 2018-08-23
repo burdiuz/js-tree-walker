@@ -24,6 +24,8 @@
     getChildAt: (item, index = 0) => adapter.toNode(item).children[index],
     getNodeParent: (item) => adapter.toNode(item).parent,
     getNodeRoot: (item) => adapter.toNode(item).root,
+    valueOf: (item) => item.valueOf(),
+    toString: (item) => item.toString(),
   };
 
   target.ONodeAdapter = adapter;
