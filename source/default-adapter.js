@@ -1,4 +1,4 @@
-let defaultAdapter = null;
+let defaultAdapter;
 
 export const setDefaultAdapter = (adapter) => {
   defaultAdapter = adapter;

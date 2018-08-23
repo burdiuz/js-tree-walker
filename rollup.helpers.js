@@ -1,3 +1,4 @@
+import { config } from 'dotenv';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
@@ -8,6 +9,8 @@ import { minify } from 'uglify-es';
 
 export const LIBRARY_FILE_NAME = 'tree-walker'; // dummy, replace with project name
 export const LIBRARY_VAR_NAME = 'TreeWalker'; // dummy, replace with project name
+
+config();
 
 export const plugins = [
   resolve(),
@@ -52,8 +55,5 @@ export const minConfig = {
       format: 'umd',
     },
   ],
-  plugins: [
-    ...plugins,
-    uglify({}, minify),
-  ],
+  plugins: [...plugins, uglify({}, minify)],
 };

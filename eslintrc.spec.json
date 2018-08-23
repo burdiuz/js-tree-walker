@@ -38,6 +38,7 @@
     "no-shadow": 1,
     "no-param-reassign": 1,
     "padded-blocks": 0,
-    "no-plusplus": 0
+    "no-plusplus": 0,
+    "function-paren-newline": 0
   }
 }

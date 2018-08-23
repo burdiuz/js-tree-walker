@@ -1,17 +1,15 @@
+import hasOwn from '@actualwave/has-own';
+
 const namePrefixes = {};
 
-export const isValidPrefix = (prefix) => (
-  typeof prefix === 'string'
-  && prefix.length === 1
-  && namePrefixes.hasOwnProperty(prefix)
-);
+export const isValidPrefix = (prefix) =>
+  typeof prefix === 'string' && hasOwn(namePrefixes, prefix);
 
-export const isPrefixedKey = (key) => (
-  key
-  && typeof(key) === 'string'
-  && key.length > 1
-  && namePrefixes.hasOwnProperty(key.charAt())
-);
+export const isPrefixedKey = (key) =>
+  key &&
+  typeof key === 'string' &&
+  key.length > 1 &&
+  hasOwn(namePrefixes, key.charAt());
 
 export const getPrefixHandler = (key) => namePrefixes[key.charAt()];
 

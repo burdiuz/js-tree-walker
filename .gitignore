@@ -3,6 +3,7 @@ Thumbs.db
 ehthumbs.db
 
 .idea/
+.history/
 
 bower_components/
 node_modules/

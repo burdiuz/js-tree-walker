@@ -4,75 +4,94 @@ const length = (node, adapter) => {
   } else if (adapter.isNode(node)) {
     return 1;
   }
+
   return 0;
 };
 
-const first = (node, adapter, args, utils) => {
-  let result = node;
+const at = (node, adapter, args, utils) => {
+  const [index = 0] = args;
+  let result;
 
   if (adapter.isList(node)) {
-    if (node.length) {
-      ([result] = node);
-    } else {
-      result = [];
+    const child = adapter.getNodeAt(node, index);
+
+    if (child) {
+      result = child;
+    }
+  } else if (!index) {
+    result = node;
+  }
+
+  // if nothing found return empty array, which will create empty wrapper for
+  // chained calls, this will make next calls errorless.
+  return utils.wrap(result || [], adapter);
+};
+
+const first = (node, adapter, args, utils) => at(node, adapter, [0], utils);
+
+const filter = (node, adapter, [callback], utils) => {
+  // apply filter on element collection
+  // always return wrapped list
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(node);
+  const result = [];
+
+  const wrappedNode = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    if (callback(utils.wrap(child, adapter), index, wrappedNode)) {
+      result.push(child);
     }
   }
 
   return utils.wrap(result, adapter);
 };
 
-const filter = (node, adapter, [callback], utils) => {
-  // apply filter on element collection
-  // always return wrapped list
-  node = adapter.toList(node);
-  const list = [];
-
-  const wrappedNode = utils.wrap(node, adapter);
-  for (let index = 0; index < node.length; index += 1) {
-    const child = node[index];
-    if (callback(utils.wrap(child, adapter), index, wrappedNode)) {
-      list.push(child);
-    }
-  }
-
-  return utils.wrap(list, adapter);
-};
-
-const map = (node, adapter, [callback, wrapNodes = true], utils) => {
+const map = (node, adapter, [callback], utils) => {
   // apply map on element collection
-  // if wrapNodes in FALSE, will generate normal Array with RAW results in it
-  // if wrapNodes in TRUE and all elements of resulting list are nodes, will
-  //   generate wrapped list and put all result into it
-  node = adapter.toList(node);
-  const list = [];
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(list);
+  const result = [];
 
-  let areNodes = true;
-  const wrappedNode = utils.wrap(node, adapter);
-  for (let index = 0; index < node.length; index += 1) {
-    const child = node[index];
-    const result = callback(utils.wrap(child, adapter), index, wrappedNode);
-    areNodes = areNodes && adapter.isNode(result);
-    list.push(result);
+  const wrappedList = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    const childResult = callback(
+      utils.wrap(child, adapter),
+      index,
+      wrappedList,
+    );
+    result.push(childResult);
   }
 
-  return wrapNodes && areNodes ? utils.wrap(list, adapter) : list;
+  // returns normal array because we don't know if all items in result are nodes
+  // and if they are, they will be likely already wrapped
+  return result;
 };
 
 const reduce = (node, adapter, [callback, result], utils) => {
   // apply reduce on element collection
-  node = adapter.toList(node);
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(node);
+  let lastResult = result;
 
-  const wrappedNode = utils.wrap(node, adapter);
-  for (let index = 0; index < node.length; index += 1) {
-    const child = node[index];
-    result = callback(result, utils.wrap(child, adapter), index, wrappedNode);
+  const wrappedNode = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    lastResult = callback(
+      lastResult,
+      utils.wrap(child, adapter),
+      index,
+      wrappedNode,
+    );
   }
 
-  return result;
+  return lastResult;
 };
 
 export default {
   length,
+  at,
   first,
   filter,
   map,

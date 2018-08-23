@@ -12,6 +12,21 @@
     "browser": true,
     "node": true
   },
+  "globals": {
+    "jest": true,
+    "describe": true,
+    "it": true,
+    "test": true,
+    "expect": true,
+    "should": true,
+    "assert": true,
+    "beforeEach": true,
+    "afterEach": true,
+    "beforeAll": true,
+    "afterAll": true,
+    "before": true,
+    "after": true
+  },
   "rules": {
     "arrow-parens": [
       "error",
@@ -25,6 +40,8 @@
     ],
     "no-param-reassign": 1,
     "padded-blocks": 0,
-    "no-plusplus": 0
+    "no-plusplus": 0,
+    "function-paren-newline": 0,
+    "no-bitwise": 0
   }
 }
