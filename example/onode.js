@@ -7,8 +7,14 @@
       this.root = root || this;
     }
 
-    toString = () => `[ONode name="${this.name}" ${JSON.stringify(this.data)}]`;
-    valueOf = () => ({ name: this.name, data: this.data });
+    toString() {
+      return `[ONode name="${this.name}" ${JSON.stringify(this.data)}]`;
+    }
+
+    valueOf() {
+      return { name: this.name, data: this.data };
+    }
+
     normalMethod() {
       return this.data;
     }

@@ -1,7 +1,9 @@
 const length = (node, adapter) => {
   if (adapter.isList(node)) {
     return adapter.getLength(node);
-  } else if (adapter.isNode(node)) {
+  }
+
+  if (adapter.isNode(node)) {
     return 1;
   }
 
@@ -56,11 +58,7 @@ const map = (node, adapter, [callback], utils) => {
   const wrappedList = utils.wrap(list, adapter);
   for (let index = 0; index < listLength; index += 1) {
     const child = adapter.getNodeAt(list, index);
-    const childResult = callback(
-      utils.wrap(child, adapter),
-      index,
-      wrappedList,
-    );
+    const childResult = callback(utils.wrap(child, adapter), index, wrappedList);
     result.push(childResult);
   }
 
@@ -78,12 +76,7 @@ const reduce = (node, adapter, [callback, result], utils) => {
   const wrappedNode = utils.wrap(list, adapter);
   for (let index = 0; index < listLength; index += 1) {
     const child = adapter.getNodeAt(list, index);
-    lastResult = callback(
-      lastResult,
-      utils.wrap(child, adapter),
-      index,
-      wrappedNode,
-    );
+    lastResult = callback(lastResult, utils.wrap(child, adapter), index, wrappedNode);
   }
 
   return lastResult;

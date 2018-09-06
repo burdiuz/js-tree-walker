@@ -13,8 +13,7 @@ export const addAugmentations = (augs) => {
   };
 };
 
-export const hasAugmentation = (key) =>
-  key && typeof key === 'string' && hasOwn(augmentations, key);
+export const hasAugmentation = (key) => key && typeof key === 'string' && hasOwn(augmentations, key);
 
 export const getAugmentation = (key) => augmentations[key];
 

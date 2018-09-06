@@ -4,7 +4,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
 // import flow from 'rollup-plugin-flow';
 import json from 'rollup-plugin-json';
-import uglify from 'rollup-plugin-uglify';
+import { uglify } from 'rollup-plugin-uglify';
 import { minify } from 'uglify-es';
 
 export const LIBRARY_FILE_NAME = 'tree-walker'; // dummy, replace with project name

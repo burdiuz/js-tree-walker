@@ -34,20 +34,50 @@ exports.default = hasOwn;
 var hasOwn = unwrapExports(hasOwn_1);
 var hasOwn_2 = hasOwn_1.hasOwn;
 
+const GET_KEY = 'get';
+const HAS_KEY = 'has';
+const SET_KEY = 'set';
+const DELETE_KEY = 'deleteProperty';
+
 const namePrefixes = {};
 
 const isValidPrefix = prefix => typeof prefix === 'string' && hasOwn(namePrefixes, prefix);
 
-const isPrefixedKey = key => key && typeof key === 'string' && key.length > 1 && hasOwn(namePrefixes, key.charAt());
+const getPrefix = key => key.charAt();
 
-const getPrefixHandler = key => namePrefixes[key.charAt()];
+const isPrefixedKey = key => key && typeof key === 'string' && key.length > 1 && hasOwn(namePrefixes, getPrefix(key));
+
+const getPrefixHandlers = key => namePrefixes[getPrefix(key)];
+
+const createPrefixHandlerGetter = type => key => {
+  const handlers = getPrefixHandlers(key);
+
+  return handlers && handlers[type];
+};
+
+const getPrefixGetHandler = createPrefixHandlerGetter(GET_KEY);
+
+const getPrefixHasHandler = createPrefixHandlerGetter(HAS_KEY);
+
+const getPrefixSetHandler = createPrefixHandlerGetter(SET_KEY);
+
+const getPrefixDeleteHandler = createPrefixHandlerGetter(DELETE_KEY);
 
 const setNamePrefix = (prefix, handler) => {
   if (typeof prefix !== 'string' || prefix.length !== 1) {
     throw new Error('Name Prefix must be one character string.');
   }
 
-  namePrefixes[prefix] = handler;
+  if (typeof handler === 'function') {
+    namePrefixes[prefix] = {
+      get: handler,
+      has: (...args) => handler(...args) !== undefined
+    };
+  } else {
+    const { get, set, has, deleteProperty } = handler;
+
+    namePrefixes[prefix] = { get, set, has, deleteProperty };
+  }
 };
 
 const isIntKey = key =>
@@ -126,16 +156,22 @@ utils = {
   wrap
 };
 
+const throwHandlerNotAvailable = (operation, key, handler) => {
+  if (!handler) {
+    throw new Error(`Operation "${operation}" is not supported for prefix "${getPrefix(key)}".`);
+  }
+};
+
 const get = ({ node, adapter, childName }, key) => {
   /*
    if symbol, return node property
    if string childName used
-   if starts with $, return attribute value
+   if starts with prefix, call GET handler
    else return wrapper with current single node and property childName
    if numeric index used, use node as parent and childName is undefined
    */
   if (typeof key === 'symbol' || GET_RESTRICTED_NAMES[key] === true) {
-    return node[key];
+    return getSingleNode(node, adapter, childName)[key];
   }
 
   if (isIntKey(key)) {
@@ -143,7 +179,10 @@ const get = ({ node, adapter, childName }, key) => {
   }
 
   if (isPrefixedKey(key)) {
-    const handler = getPrefixHandler(key);
+    const handler = getPrefixGetHandler(key);
+
+    throwHandlerNotAvailable(GET_KEY, key, handler);
+
     return handler(getValue(node, adapter, childName), adapter, [key.substr(1)], utils);
   }
 
@@ -154,15 +193,20 @@ const get = ({ node, adapter, childName }, key) => {
 };
 
 const has = ({ node, adapter, childName }, key) => {
+  if (typeof key === 'symbol' || GET_RESTRICTED_NAMES[key] === true) {
+    return key in getSingleNode(node, adapter, childName);
+  }
+
   if (isIntKey(key)) {
     return !!adapter.getNodeAt(getNodeList(node, adapter, childName), key);
   }
 
   if (isPrefixedKey(key)) {
-    // return adapter.hasAttribute(getSingleNode(node, adapter, childName), key.substr(1));
-    // don't know how to implement this, calling same handler as in GET seems overkill
-    // FIXME let user to register GET and optional SET/HAS handlers
-    return true;
+    const handler = getPrefixHasHandler(key);
+
+    throwHandlerNotAvailable(HAS_KEY, key, handler);
+
+    return handler(getValue(node, adapter, childName), adapter, [key.substr(1)], utils);
   }
 
   return adapter.hasChild(getSingleNode(node, adapter, childName), key);
@@ -173,15 +217,19 @@ const apply = ({ node, adapter, childName }, thisArg, argumentsList) => {
     throw new Error('Cannot call on TreeWalker Node');
   }
 
-  // this works only of childName === prefix, one char string
-  // otherwise it should be passed into arguments
-
-  // FIXME if GET always return result of prefixed property, means there are
-  // no cases when we get a wrapped node to APPLY trap with prefixed name.
-  if (isValidPrefix(childName)) {
-    const handler = getPrefixHandler(childName);
-    return handler(node, adapter, [childName.substr(1), ...argumentsList], utils);
+  /* GET always return result of prefixed property, means there are
+     no cases when we get a wrapped node to APPLY trap with prefixed name.
+   if (isValidPrefix(childName)) {
+    const handler = getPrefixApplyHandler(childName);
+     throwHandlerNotAvailable(APPLY_KEY, childName, handler);
+     return handler(
+      node,
+      adapter,
+      [childName.substr(1), ...argumentsList],
+      utils,
+    );
   }
+  */
 
   if (hasAugmentation(childName)) {
     // INFO cannot use target because it contains method's childName, not Node childName
@@ -199,10 +247,56 @@ const apply = ({ node, adapter, childName }, thisArg, argumentsList) => {
   throw new Error(`"${childName}" is not a callable object.`);
 };
 
+const set = ({ node, adapter, childName }, key, value) => {
+  /*
+   if symbol, set value directly
+   if starts with prefix, call SET handler
+   else throw an error
+   */
+  if (typeof key === 'symbol' || GET_RESTRICTED_NAMES[key] === true) {
+    getSingleNode(node, adapter, childName)[key] = value;
+    return true;
+  }
+
+  if (isPrefixedKey(key)) {
+    const handler = getPrefixSetHandler(key);
+
+    throwHandlerNotAvailable(SET_KEY, key, handler);
+
+    return handler(getValue(node, adapter, childName), adapter, [key.substr(1), value], utils);
+  }
+
+  throw new Error(`Operation "${SET_KEY}" is not supported for nodes.`);
+};
+
+const deleteProperty = ({ node, adapter, childName }, key) => {
+  /*
+   if symbol, delete value directly
+   if starts with prefix, call DELETE handler
+   else throw an error
+   */
+  if (typeof key === 'symbol' || GET_RESTRICTED_NAMES[key] === true) {
+    return delete getSingleNode(node, adapter, childName)[key];
+  }
+
+  if (isPrefixedKey(key)) {
+    const handler = getPrefixDeleteHandler(key);
+
+    throwHandlerNotAvailable(DELETE_KEY, key, handler);
+
+    return handler(getValue(node, adapter, childName), adapter, [key.substr(1)], utils);
+  }
+
+  throw new Error(`Operation "${DELETE_KEY}" is not supported for nodes.`);
+};
+
 handlers = {
   get,
   has,
-  apply
+  apply,
+  // only for prefixed keys
+  set,
+  deleteProperty
 };
 
 const toString = (node, adapter) => adapter.string ? adapter.string(node) : node.toString();
@@ -214,6 +308,8 @@ var coreAugmentations = {
 };
 
 /* eslint-disable prefer-spread */
+const name = (node, adapter) => adapter.getName(node);
+
 const children = (node, adapter, [childName], utils) => {
   let list;
 
@@ -256,7 +352,8 @@ const descendantsByName = (node, adapter, args, utils) => {
   const length = adapter.getLength(list, adapter);
 
   for (let index = 0; index < length; index += 1) {
-    const child = list[index];
+    const child = adapter.getNodeAt(list, index);
+
     if (adapter.getName(child) === childName) {
       children.push(child);
     }
@@ -285,6 +382,7 @@ const root = (node, adapter, args, utils) => utils.wrap(adapter.getNodeRoot(node
 const parent = (node, adapter, args, utils) => utils.wrap(adapter.getNodeParent(node), adapter);
 
 var node = {
+  name,
   children,
   descendants,
   childAt,

@@ -8,23 +8,19 @@ import listAugmentations from './augmentations/list';
 
 addAugmentations(coreAugmentations);
 
-const create = (root, adapter = getDefaultAdapter()) =>
-  wrap(adapter.validateRoot(root), adapter);
+const create = (root, adapter = getDefaultAdapter()) => wrap(adapter.validateRoot(root), adapter);
 
 export {
   setDefaultAdapter,
   getDefaultAdapter,
-
   addAugmentations,
   hasAugmentation,
   resetAugmentations,
   coreAugmentations,
   nodeAugmentations,
   listAugmentations,
-
   setNamePrefix,
   isValidPrefix,
-
   create,
 };
 

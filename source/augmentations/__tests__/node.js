@@ -12,6 +12,14 @@ describe('Node augmentations', () => {
     root = create(source, ONodeAdapter);
   });
 
+  describe('name()', () => {
+    it('should return node name', () => {
+      expect(root.name()).toBe('#root');
+      expect(root.first.name()).toBe('first');
+      expect(root.first.first.third.name()).toBe('third');
+    });
+  });
+
   describe('children()', () => {
     it('should result with direct children of the node', () => {
       expect(valueOf(root.children())).toEqual([
@@ -44,9 +52,7 @@ describe('Node augmentations', () => {
 
     describe('When name provided', () => {
       it('should return children by name', () => {
-        expect(valueOf(root.children('second'))).toEqual([
-          { name: 'second', data: { level: 1 } },
-        ]);
+        expect(valueOf(root.children('second'))).toEqual([{ name: 'second', data: { level: 1 } }]);
 
         expect(valueOf(root.children('unknown'))).toEqual([]);
 
