@@ -4,6 +4,7 @@ ehthumbs.db
 
 .idea/
 .history/
+.vscode/
 
 bower_components/
 node_modules/

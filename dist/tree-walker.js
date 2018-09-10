@@ -45,7 +45,13 @@ const isValidPrefix = prefix => typeof prefix === 'string' && hasOwn(namePrefixe
 
 const getPrefix = key => key.charAt();
 
-const isPrefixedKey = key => key && typeof key === 'string' && key.length > 1 && hasOwn(namePrefixes, getPrefix(key));
+const isPrefixedKey = key => {
+  if (key && typeof key === 'string' && key.length > 1) {
+    return hasOwn(namePrefixes, getPrefix(key));
+  }
+
+  return false;
+};
 
 const getPrefixHandlers = key => namePrefixes[getPrefix(key)];
 
@@ -80,9 +86,7 @@ const setNamePrefix = (prefix, handler) => {
   }
 };
 
-const isIntKey = key =>
-// it is unsigned int
-typeof key === 'number' && key >>> 0 === key ||
+const isIntKey = key => typeof key === 'number' && key >>> 0 === key ||
 // it is integer number string
 `${parseInt(String(key), 10)}` === key;
 
@@ -393,7 +397,9 @@ var node = {
 const length = (node, adapter) => {
   if (adapter.isList(node)) {
     return adapter.getLength(node);
-  } else if (adapter.isNode(node)) {
+  }
+
+  if (adapter.isNode(node)) {
     return 1;
   }
 

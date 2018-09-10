@@ -7,7 +7,9 @@ You may check ready to use implementation DOMWalker for better understanding.
 Inspired by [E4X(ECMAScript for XML)](https://en.wikipedia.org/wiki/ECMAScript_for_XML) and its ActionScript 3 implementation(R.I.P.).
 
 ### Demo
-Demo is available at [jsfiddle.net](https://jsfiddle.net/actualwave/6kw7z4xj/).
+* Using with [Object Children Adapter](https://github.com/burdiuz/js-walker-children-adapter): [TreeWalker Object Tree Demo](https://jsfiddle.net/actualwave/6kw7z4xj/).
+* Using with [Denormalize Adapter](https://github.com/burdiuz/js-walker-denormalize-adapter): [TreeWalker Normalized Tree Demo](https://jsfiddle.net/actualwave/5euz47hq/)
+* Using with [Browser DOM Adapter](https://github.com/burdiuz/js-walker-browserdom-adapter): [TreeWalker BrowserDOM Tree Demo](https://jsfiddle.net/actualwave/p1k4wjy2/)
 
 ### Table of Contents
 * [Installation](#installation)
