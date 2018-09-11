@@ -67,6 +67,18 @@ const map = (node, adapter, [callback], utils) => {
   return result;
 };
 
+const forEach = (node, adapter, [callback], utils) => {
+  // apply map on element collection
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(list);
+
+  const wrappedList = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    callback(utils.wrap(child, adapter), index, wrappedList);
+  }
+};
+
 const reduce = (node, adapter, [callback, result], utils) => {
   // apply reduce on element collection
   const list = adapter.toList(node);
@@ -88,5 +100,6 @@ export default {
   first,
   filter,
   map,
+  forEach,
   reduce,
 };
