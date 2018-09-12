@@ -1,9 +1,4 @@
-import {
-  create,
-  addAugmentations,
-  nodeAugmentations,
-  listAugmentations,
-} from '../../index';
+import { create, addAugmentations, nodeAugmentations, listAugmentations } from '../../index';
 import { ONodeAdapter, getSourceTree, valueOf } from '../../../fixtures';
 
 describe('Node augmentations', () => {
@@ -71,42 +66,36 @@ describe('Node augmentations', () => {
 
   describe('filter()', () => {
     it('should return filtered list', () => {
-      expect(valueOf(root.filter(() => true))).toEqual([
-        { data: { level: 0 }, name: '#root' },
-      ]);
+      expect(valueOf(root.filter(() => true))).toEqual([{ data: { level: 0 }, name: '#root' }]);
 
       expect(valueOf(root.filter(() => false))).toEqual([]);
 
-      expect(
-        valueOf(
-          root.descendants().filter((item) => item.valueOf().name === 'third'),
-        ),
-      ).toEqual([
-        { data: { level: 1 }, name: 'third' },
-        { data: { level: 2 }, name: 'third' },
-        { data: { index: 0, level: 3 }, name: 'third' },
-        { data: { index: 1, level: 3 }, name: 'third' },
-        { data: { index: 2, level: 3 }, name: 'third' },
-        { data: { index: 3, level: 3 }, name: 'third' },
-        { data: { level: 4 }, name: 'third' },
-      ]);
+      expect(valueOf(root.descendants().filter((item) => item.valueOf().name === 'third'))).toEqual(
+        [
+          { data: { level: 1 }, name: 'third' },
+          { data: { level: 2 }, name: 'third' },
+          { data: { index: 0, level: 3 }, name: 'third' },
+          { data: { index: 1, level: 3 }, name: 'third' },
+          { data: { index: 2, level: 3 }, name: 'third' },
+          { data: { index: 3, level: 3 }, name: 'third' },
+          { data: { level: 4 }, name: 'third' },
+        ],
+      );
 
-      expect(
-        valueOf(
-          root.descendants().filter((item) => item.valueOf().data.level === 3),
-        ),
-      ).toEqual([
-        { data: { level: 3 }, name: 'first' },
-        { data: { level: 3 }, name: 'second' },
-        { data: { index: 0, level: 3 }, name: 'third' },
-        { data: { index: 1, level: 3 }, name: 'third' },
-        { data: { index: 2, level: 3 }, name: 'third' },
-        { data: { index: 3, level: 3 }, name: 'third' },
-        { data: { level: 3 }, name: 'fourth' },
-        { data: { level: 3, uniqueParam: '123-456' }, name: 'uniqueName' },
-        { data: { level: 3 }, name: 'fifth' },
-        { data: { level: 3 }, name: 'sixth' },
-      ]);
+      expect(valueOf(root.descendants().filter((item) => item.valueOf().data.level === 3))).toEqual(
+        [
+          { data: { level: 3 }, name: 'first' },
+          { data: { level: 3 }, name: 'second' },
+          { data: { index: 0, level: 3 }, name: 'third' },
+          { data: { index: 1, level: 3 }, name: 'third' },
+          { data: { index: 2, level: 3 }, name: 'third' },
+          { data: { index: 3, level: 3 }, name: 'third' },
+          { data: { level: 3 }, name: 'fourth' },
+          { data: { level: 3, uniqueParam: '123-456' }, name: 'uniqueName' },
+          { data: { level: 3 }, name: 'fifth' },
+          { data: { level: 3 }, name: 'sixth' },
+        ],
+      );
     });
   });
 
@@ -114,9 +103,7 @@ describe('Node augmentations', () => {
     it('should return mapped list', () => {
       expect(
         valueOf(
-          root
-            .descendants()
-            .map((item) => (item.valueOf().data.level === 2 ? item : null)),
+          root.descendants().map((item) => (item.valueOf().data.level === 2 ? item : null)),
         ).map((item) => item && item.valueOf()),
       ).toEqual([
         null,
@@ -151,12 +138,35 @@ describe('Node augmentations', () => {
     });
   });
 
+  describe('forEach()', () => {
+    let result;
+
+    beforeEach(() => {
+      result = [];
+      root.children().forEach((item) => {
+        result.push({
+          ...item.valueOf(),
+          children: null,
+        });
+      });
+    });
+
+    it('should go through all items in the list', () => {
+      expect(valueOf(result)).toEqual([
+        { name: 'first', data: { level: 1 } },
+        { name: 'second', data: { level: 1 } },
+        { name: 'third', data: { level: 1 } },
+        { name: 'fourth', data: { level: 1 } },
+        { name: 'fifth', data: { level: 1 } },
+        { name: 'sixth', data: { level: 1 } },
+      ]);
+    });
+  });
+
   describe('reduce()', () => {
     it('should return reduced value', () => {
       expect(
-        root
-          .descendants()
-          .reduce((total, item) => total + item.valueOf().data.level, 0),
+        root.descendants().reduce((total, item) => total + item.valueOf().data.level, 0),
       ).toEqual(72);
     });
   });
