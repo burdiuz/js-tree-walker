@@ -1,7 +1,7 @@
 {
   "name": "@actualwave/tree-walker",
   "description": "Wireframe based on ES6 Proxies for making tree traversing APIs.",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "dist/tree-walker.js",
   "keywords": [
     "js",

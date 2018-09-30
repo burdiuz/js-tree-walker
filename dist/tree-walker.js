@@ -2,37 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var hasOwn = _interopDefault(require('@actualwave/has-own'));
+
 let defaultAdapter;
 
 const setDefaultAdapter = adapter => {
   defaultAdapter = adapter;
 };
 const getDefaultAdapter = () => defaultAdapter;
-
-function unwrapExports (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
-
-var hasOwn_1 = createCommonjsModule(function (module, exports) {
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-const hasOwn = (
-  (has) =>
-  (target, property) =>
-  Boolean(target && has.call(target, property))
-)(Object.prototype.hasOwnProperty);
-
-exports.hasOwn = hasOwn;
-exports.default = hasOwn;
-});
-
-var hasOwn = unwrapExports(hasOwn_1);
-var hasOwn_2 = hasOwn_1.hasOwn;
 
 const GET_KEY = 'get';
 const HAS_KEY = 'has';
@@ -463,6 +442,18 @@ const map = (node, adapter, [callback], utils) => {
   return result;
 };
 
+const forEach = (node, adapter, [callback], utils) => {
+  // apply map on element collection
+  const list = adapter.toList(node);
+  const listLength = adapter.getLength(list);
+
+  const wrappedList = utils.wrap(list, adapter);
+  for (let index = 0; index < listLength; index += 1) {
+    const child = adapter.getNodeAt(list, index);
+    callback(utils.wrap(child, adapter), index, wrappedList);
+  }
+};
+
 const reduce = (node, adapter, [callback, result], utils) => {
   // apply reduce on element collection
   const list = adapter.toList(node);
@@ -484,6 +475,7 @@ var list = {
   first,
   filter,
   map,
+  forEach,
   reduce
 };
 
