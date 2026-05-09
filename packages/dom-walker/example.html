@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Example</title>
+  <script src="./dist/dom-walker.umd.js"></script>
+</head>
+
+<body>
+  <div class="jumbotron text-center">
+    <h1>My First Bootstrap Page</h1>
+    <p>Resize this responsive page to see the effect!</p>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4">
+        <h3>Column 1</h3>
+        <p>Lorem ipsum dolor..</p>
+        <p>Ut enim ad..</p>
+      </div>
+      <div class="col-sm-4">
+        <h3>Column 2</h3>
+        <p>Lorem ipsum dolor..</p>
+        <p>Ut enim ad..</p>
+      </div>
+      <div class="col-sm-4">
+        <h3>Column 3</h3>
+        <p>Lorem ipsum dolor..</p>
+        <p>Ut enim ad..</p>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  const body = DOMWalker.create(document.body);
+
+  // root now contains tree walker instance and ready to go
+  console.log('Body contains two test DIVs:');
+  console.log(body.div[0].$className, 'and', body.div[1].$className);
+
+  console.log(body.div[1].div.div.h3.valueOf());
+
+  console.log('How many H3 we have?');
+  console.log(body.descendants('H3').length());
+
+  console.log('What text they have?');
+  // FIXME make search for nodes case insensitive
+  console.log(body.descendants('h3').map((header) => header.text()));
+</script>
+
+</html>

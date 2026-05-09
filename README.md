@@ -128,7 +128,7 @@ To use TreeWalker, it should be supplied with two required components:
 
 Additionally augmentations and prefixes could be used to enrich final API.
 
-Before using, TreeWalker must be created via factory function `create()`, it returns source data wrapped into a Proxy wrapper(just "wrapper" in text below) which will use adapter to get children nodes, call augmentations and apply prefixes. TreeWrapper is read-only tree traverser, so it has only `get`, `has` and `apply` traps, `set` or `deleteProperty` are not implemented. But you may create an augmentation for source data mutations(explained below).
+Before using, TreeWalker must be created via factory function `create()`, it returns source data wrapped into a Proxy wrapper(just "wrapper" in text below) which will use adapter to get children nodes, call augmentations and apply prefixes. Node traversal is read-only — `set` and `deleteProperty` on plain node properties are not supported. However, if a prefix handler is registered for a key (e.g. `$attr`), `set` and `deleteProperty` will delegate to that prefix handler, enabling mutation through prefixed properties.
 
 ```javascript
 import { create } from '@actualwave/tree-walker';

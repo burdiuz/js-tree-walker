@@ -1,0 +1,11 @@
+import { setDefaultAdapter, getDefaultAdapter } from './default-adapter';
+import { setNamePrefix, isValidPrefix } from './prefixes';
+import { addAugmentations, resetAugmentations, hasAugmentation } from './augmentations';
+import coreAugmentations from './augmentations/core';
+import nodeAugmentations from './augmentations/node';
+import listAugmentations from './augmentations/list';
+import type { Adapter } from './types';
+declare const create: (root: unknown, adapter?: Adapter) => unknown;
+export { setDefaultAdapter, getDefaultAdapter, addAugmentations, hasAugmentation, resetAugmentations, coreAugmentations, nodeAugmentations, listAugmentations, setNamePrefix, isValidPrefix, create, };
+export type { Adapter, AugmentationFunction, AugmentationMap, WalkerUtils, WalkerProxy, PrefixHandlers, PrefixHandlerFunction } from './types';
+export default create;

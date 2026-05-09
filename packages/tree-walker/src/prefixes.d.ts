@@ -1,0 +1,13 @@
+import type { PrefixHandlerFunction, PrefixHandlers } from './types';
+export declare const GET_KEY: "get";
+export declare const HAS_KEY: "has";
+export declare const SET_KEY: "set";
+export declare const DELETE_KEY: "deleteProperty";
+export declare const isValidPrefix: (prefix: unknown) => boolean;
+export declare const getPrefix: (key: string) => string;
+export declare const isPrefixedKey: (key: unknown) => boolean;
+export declare const getPrefixGetHandler: (key: string) => PrefixHandlerFunction | undefined;
+export declare const getPrefixHasHandler: (key: string) => PrefixHandlerFunction | undefined;
+export declare const getPrefixSetHandler: (key: string) => PrefixHandlerFunction | undefined;
+export declare const getPrefixDeleteHandler: (key: string) => PrefixHandlerFunction | undefined;
+export declare const setNamePrefix: (prefix: string, handler: PrefixHandlerFunction | PrefixHandlers) => void;

@@ -1,62 +1,77 @@
-import { config } from 'dotenv';
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
-import babel from 'rollup-plugin-babel';
-// import flow from 'rollup-plugin-flow';
-import json from 'rollup-plugin-json';
-import { uglify } from 'rollup-plugin-uglify';
-import { minify } from 'uglify-es';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import babel from '@rollup/plugin-babel';
+import json from '@rollup/plugin-json';
+import terser from '@rollup/plugin-terser';
+import copy from 'rollup-plugin-copy';
 
-export const LIBRARY_FILE_NAME = 'tree-walker'; // dummy, replace with project name
-export const LIBRARY_VAR_NAME = 'TreeWalker'; // dummy, replace with project name
+const extensions = ['.ts', '.js'];
 
-config();
-
-export const plugins = [
-  resolve(),
-  // flow(),
+const createPlugins = () => [
+  resolve({ extensions, exportConditions: ['source'] }),
   babel({
-    plugins: [
-      'babel-plugin-transform-class-properties',
-      'babel-plugin-transform-flow-strip-types',
-      ['babel-plugin-transform-object-rest-spread', { useBuiltIns: true }],
-      'babel-plugin-external-helpers',
-    ],
+    babelHelpers: 'bundled',
     exclude: 'node_modules/**',
-    externalHelpers: true,
-    babelrc: false,
+    extensions,
+    presets: ['@babel/preset-typescript'],
   }),
   commonjs(),
   json(),
 ];
 
-export const baseConfig = {
-  input: 'source/index.js',
-  output: [
-    {
-      file: `dist/${LIBRARY_FILE_NAME}.js`,
-      sourcemap: true,
-      exports: 'named',
-      name: LIBRARY_VAR_NAME,
-      format: 'cjs',
-    },
-  ],
-  plugins,
-  external: [
-    '@actualwave/has-own',
-  ],
-};
+const createCopyPlugin = () =>
+  copy({
+    targets: [
+      { src: 'README.md', dest: 'dist' },
+      { src: 'SKILL.md', dest: 'dist' },
+      { src: 'package.json', dest: 'dist' },
+      { src: 'LICENSE', dest: 'dist' },
+    ],
+  });
 
-export const minConfig = {
-  input: 'source/index.js',
-  output: [
+export const createConfigs = ({
+  name,
+  file = 'dist/index',
+  input = 'src/index.ts',
+  umdFileName = 'dist/index',
+  umdInput,
+  external = [],
+  cjsOnly = false,
+  copyFiles = false,
+}) => {
+  const firstPlugins = createPlugins();
+  if (copyFiles) {
+    firstPlugins.push(createCopyPlugin());
+  }
+
+  const configs = [
     {
-      file: `dist/${LIBRARY_FILE_NAME}.min.js`,
-      sourcemap: true,
-      exports: 'named',
-      name: LIBRARY_VAR_NAME,
-      format: 'umd',
+      input,
+      output: {
+        file: `${file}.js`,
+        sourcemap: true,
+        exports: 'named',
+        name,
+        format: 'cjs',
+      },
+      plugins: firstPlugins,
+      external,
     },
-  ],
-  plugins: [...plugins, uglify({}, minify)],
+  ];
+
+  if (!cjsOnly) {
+    configs.push({
+      input: umdInput || input,
+      output: {
+        file: `${umdFileName}.umd.js`,
+        sourcemap: true,
+        exports: 'named',
+        name,
+        format: 'umd',
+      },
+      plugins: [...createPlugins(), terser()],
+    });
+  }
+
+  return configs;
 };

@@ -1,0 +1,52 @@
+{
+  "name": "@actualwave/dom-walker",
+  "description": "Library build on TreeWalker for traversing HTML DOM.",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "types": "./types/index.d.ts"
+    },
+    "./adapter": {
+      "require": "./adapter.js",
+      "types": "./types/adapter/index.d.ts"
+    },
+    "./augmentations": {
+      "require": "./augmentations.js",
+      "types": "./types/augmentations/index.d.ts"
+    }
+  },
+  "keywords": [
+    "js",
+    "javascript",
+    "dom",
+    "traverse",
+    "tree",
+    "walker",
+    "treewalker",
+    "E4X"
+  ],
+  "homepage": "https://github.com/burdiuz/js-tree-walker",
+  "bugs": {
+    "url": "https://github.com/burdiuz/js-tree-walker/issues",
+    "email": "burdiuz@gmail.com"
+  },
+  "license": "MIT",
+  "author": "Oleg Galaburda <burdiuz@gmail.com> (http://actualwave.com/)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/burdiuz/js-tree-walker.git"
+  },
+  "dependencies": {
+    "@actualwave/tree-walker": "^1.0.6"
+  },
+  "scripts": {
+    "build": "rollup --config && tsc --emitDeclarationOnly",
+    "build:watch": "rollup --config --watch \"./src\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "jest --colors",
+    "test:watch": "jest --colors --watch"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "parser": "@babel/eslint-parser",
+  "extends": ["airbnb-base"],
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "requireConfigFile": false
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "rules": {
+    "arrow-parens": ["error", "always"],
+    "linebreak-style": 0,
+    "no-underscore-dangle": 0,
+    "no-restricted-syntax": ["error", "WithStatement"],
+    "no-param-reassign": 1,
+    "padded-blocks": 0,
+    "no-plusplus": 0,
+    "function-paren-newline": 0,
+    "object-curly-newline": 0,
+    "no-bitwise": 0,
+    "max-len": ["error", { "code": 120 }]
+  }
+}

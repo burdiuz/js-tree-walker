@@ -1,0 +1,61 @@
+{
+  "name": "@actualwave/tree-walker",
+  "description": "Wireframe based on ES6 Proxies for making tree traversing APIs.",
+  "version": "1.1.0",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "require": "./index.js",
+      "types": "./types/index.d.ts"
+    },
+    "./children-adapter": {
+      "source": "./src/children-adapter/index.ts",
+      "require": "./children-adapter.js",
+      "types": "./types/children-adapter/index.d.ts"
+    },
+    "./denormalize-adapter": {
+      "source": "./src/denormalize-adapter/index.ts",
+      "require": "./denormalize-adapter.js",
+      "types": "./types/denormalize-adapter/index.d.ts"
+    },
+    "./property-handlers": {
+      "source": "./src/property-handlers/index.ts",
+      "require": "./property-handlers.js",
+      "types": "./types/property-handlers/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "children-adapter": ["dist/types/children-adapter/index.d.ts"],
+      "denormalize-adapter": ["dist/types/denormalize-adapter/index.d.ts"],
+      "property-handlers": ["dist/types/property-handlers/index.d.ts"]
+    }
+  },
+  "keywords": [
+    "js",
+    "javascript",
+    "proxy",
+    "tree",
+    "E4X"
+  ],
+  "homepage": "https://github.com/burdiuz/js-tree-walker",
+  "bugs": {
+    "url": "https://github.com/burdiuz/js-tree-walker/issues",
+    "email": "burdiuz@gmail.com"
+  },
+  "license": "MIT",
+  "author": "Oleg Galaburda <burdiuz@gmail.com> (http://actualwave.com/)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/burdiuz/js-tree-walker.git"
+  },
+  "scripts": {
+    "build": "rollup --config && tsc --emitDeclarationOnly",
+    "build:watch": "rollup --config --watch \"./src\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "jest --colors",
+    "test:watch": "jest --colors --watch"
+  }
+}
